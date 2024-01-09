@@ -1,17 +1,30 @@
-// Obsługa localStorage:
-// localStorage.getItem(key) localStorage.setItem(key, stringValue) localStorage.removeItem(key) localStorage.clear()
-// Zapisywanie dat (timestamp lub ISO string):
-// Date.now() //timestamp
-// new Date().toISOString() //format ISO
-// Wyświetlanie daty
-// dateObject.toLocaleString()
-// dateObject.get*()
+function pinNote(index) {
+    notes[index].isPinned = !notes[index].isPinned;
 
-window.onload = function generateStorageNotes(){
-    let notes = JSON.parse[localStorage.getItem("notes")];
+    notes.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return 0;
+    });
+
+    notesContainer.innerHTML = "";
+
+    notes.forEach((note, index) => {
+        generateNote(note, index);
+    });
+
+    localStorage.setItem("notes", JSON.stringify(notes));
+}
+
+window.onload = function generateStorageNotes() {
+    let storedNotes = localStorage.getItem("notes");
+    notes = storedNotes ? JSON.parse(storedNotes) : [];
     console.log(notes);
-    notes.forEach(element => {
-         generateNote(element);
+
+    notesContainer.innerHTML = "";
+
+    notes.forEach((note, index) => {
+        generateNote(note, index);
     });
 }
 
@@ -33,30 +46,35 @@ function saveValues(){
     let content = document.getElementById("content").value;
     let color = document.getElementById("color").value;
 
-    let note = new Note(title, content, color)
+    let note = new Note(title, content, color);
     notes.push(note);
 
-    generateNote(note);
+    generateNote(note, notes.length - 1);
     
     console.log(notes);
 
     localStorage.setItem("notes", JSON.stringify(notes));
 }
 
-function generateNote(note){
+function generateNote(note, index){
     let noteElement = document.createElement("div");
     let titleElement = document.createElement("h4");
     let contentElement = document.createElement("p");
     let dateElement = document.createElement("p");
+    let pinElement = document.createElement("input");
+
+    pinElement.type = "checkbox";
+    pinElement.checked = note.isPinned;
+    pinElement.addEventListener("change", () => pinNote(index));
 
     let date = new Date();
-    let stringDate = date.toISOString();
+    let stringDate = date.toLocaleDateString();
 
     titleElement.append(note.title);
     contentElement.append(note.content);
     dateElement.append("Data stworzenia: ", stringDate);
 
-    noteElement.append(titleElement, contentElement, dateElement);
+    noteElement.append(pinElement, titleElement, contentElement, dateElement);
     noteElement.style.background = note.color;
     notesContainer.append(noteElement);
 }
