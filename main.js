@@ -1,3 +1,16 @@
+let notesContainer = document.getElementById("notes-container");
+let notes = [];
+
+class Note {
+    constructor(title, content, color, isPinned = false, tags = []) {
+        this.title = title;
+        this.content = content;
+        this.color = color;
+        this.isPinned = isPinned;
+        this.tags = tags;
+    }
+}
+
 function pinNote(index) {
     notes[index].isPinned = !notes[index].isPinned;
 
@@ -7,61 +20,67 @@ function pinNote(index) {
         return 0;
     });
 
-    notesContainer.innerHTML = "";
-
-    notes.forEach((note, index) => {
-        generateNote(note, index);
-    });
-
-    localStorage.setItem("notes", JSON.stringify(notes));
+    displayNotes();
+    saveToLocalStorage();
 }
 
-window.onload = function generateStorageNotes() {
+function generateStorageNotes() {
     let storedNotes = localStorage.getItem("notes");
     notes = storedNotes ? JSON.parse(storedNotes) : [];
-    console.log(notes);
-
-    notesContainer.innerHTML = "";
-
-    notes.forEach((note, index) => {
-        generateNote(note, index);
-    });
+    displayNotes();
 }
 
-const notesContainer = document.getElementById("notes-container");
-
-let notes = [];
-
-class Note {
-    constructor(title, content, color, isPinned = false){
-        this.title = title;
-        this.content = content;
-        this.color = color;
-        this.isPinned = isPinned;
-    }
-};
-
-function saveValues(){
+function saveValues() {
     let title = document.getElementById("title").value;
     let content = document.getElementById("content").value;
     let color = document.getElementById("color").value;
+    let tags = document.getElementById("tags").value.split(',').map(tag => tag.trim());
 
-    let note = new Note(title, content, color);
+    let note = new Note(title, content, color, false, tags);
     notes.push(note);
 
-    generateNote(note, notes.length - 1);
-    
-    console.log(notes);
+    console.log("Saved note:", note);
+    console.log("All notes:", notes);
 
+    displayNotes();
+    saveToLocalStorage();
+}
+
+
+function searchNotes(query) {
+    let filteredNotes = notes.filter(note => {
+        query = query.toLowerCase();
+        return (
+            query === "" ||
+            note.title.toLowerCase().includes(query) ||
+            note.content.toLowerCase().includes(query) ||
+            (Array.isArray(note.tags) && note.tags.some(tag => tag.toLowerCase().includes(query))) ||
+            (query !== "" && !isNaN(query) && note.title.includes(query))
+        );
+    });
+
+    displayNotes(filteredNotes);
+}
+
+function displayNotes(notesToDisplay = notes) {
+    notesContainer.innerHTML = "";
+
+    notesToDisplay.forEach((note, index) => {
+        generateNoteElement(note, index);
+    });
+}
+
+function saveToLocalStorage() {
     localStorage.setItem("notes", JSON.stringify(notes));
 }
 
-function generateNote(note, index){
+function generateNoteElement(note, index) {
     let noteElement = document.createElement("div");
     let titleElement = document.createElement("h4");
     let contentElement = document.createElement("p");
     let dateElement = document.createElement("p");
     let pinElement = document.createElement("input");
+    let tagsElement = document.createElement("p");
 
     pinElement.type = "checkbox";
     pinElement.checked = note.isPinned;
@@ -74,7 +93,11 @@ function generateNote(note, index){
     contentElement.append(note.content);
     dateElement.append("Data stworzenia: ", stringDate);
 
-    noteElement.append(pinElement, titleElement, contentElement, dateElement);
+    tagsElement.append("Tagi: ", Array.isArray(note.tags) ? note.tags.join(', ') : '');
+
+    noteElement.append(pinElement, titleElement, contentElement, dateElement, tagsElement);
     noteElement.style.background = note.color;
     notesContainer.append(noteElement);
 }
+
+window.onload = generateStorageNotes;

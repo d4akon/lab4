@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <input type="text" id="searchInput" oninput="searchNotes(this.value)" placeholder="Wyszukaj notatki">
+
     <div class="input-container">
         <p>Tytuł</p>
         <input id="title" type="text">
@@ -14,13 +16,15 @@
         <input id="content" type="text">
         <p>Kolor notatki</p>
         <input id="color" type="color">
+        <p>Tagi</p>
+        <input id="tags" type="text">
         <button onclick="saveValues()" id="save">Zapisz</button>
     </div>
 
     <div id="notes-container">
 
     </div>
-</body>
 
-<script src="main.js"></script>
+    <script src="main.js"></script>
+</body>
 </html>
